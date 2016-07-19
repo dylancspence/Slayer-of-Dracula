@@ -11,8 +11,20 @@
 
 
 #include <stdio.h>
+#include <iostream>
+using namespace std;
 
 int main(int argc, char* argv[]) {
+
+#if defined(_WIN32)||(_WIN64)
+		cout <<"Running on Window" << endl;
+#endif
+#if defined(__APPLE__)
+		cout <<"Running on Apple" << endl;
+#endif
+#if defined(__linux__)
+		cout <<"Running on linux"<< endl;
+#endif
 
     SDL_Window *window;                    // Declare a pointer
 
