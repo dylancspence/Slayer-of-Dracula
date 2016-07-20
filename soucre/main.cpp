@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 		cout <<"Running on Apple" << endl;
 #endif
 #if defined(__linux__)
-		cout <<"Running on linux"<< endl;
+		cout <<"Running on Linux"<< endl;
 #endif
 
     SDL_Window *window;                    // Declare a pointer
