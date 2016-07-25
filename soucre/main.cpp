@@ -1,9 +1,12 @@
 
 #if defined(_WIN32)||(_WIN64)
 		#include "SDL.h"
+
 #endif
 #if defined(__APPLE__)
 		#include "SDL2/SDL.h"
+        #include "SDL2_image/SDL_image.h"
+
 #endif
 #if defined(__linux__)
 		#include "SDL2/SDL.h"
@@ -12,7 +15,33 @@
 
 #include <stdio.h>
 #include <iostream>
+
 using namespace std;
+
+//The image we will load and show on the screen
+SDL_Surface* gHelloWorld = NULL;
+
+bool loadMedia();
+
+bool loadMedia()
+{
+	//Loading success flag
+	bool success = true;
+
+	//Load splash image
+	gHelloWorld = SDL_LoadBMP( "Slayer-of-Dracula/image/mapp.bmp" );
+	if( gHelloWorld == NULL )
+	{
+		//printf( "Unable to load image %s! SDL Error: %s\n", 0, SDL_GetError() );
+		success = false;
+	}
+
+	return success;
+}
+
+
+
+
 
 int main(int argc, char* argv[]) {
 
@@ -35,10 +64,11 @@ int main(int argc, char* argv[]) {
         "An SDL2 window",                  // window title
         SDL_WINDOWPOS_UNDEFINED,           // initial x position
         SDL_WINDOWPOS_UNDEFINED,           // initial y position
-        640,                               // width, in pixels
-        480,                               // height, in pixels
+        1024,                               // width, in pixels
+        768,                               // height, in pixels
         SDL_WINDOW_OPENGL                  // flags - see below
     );
+
 
 		if(window == NULL ){
 			printf("could not create window: %s\n",SDL_GetError());
@@ -50,11 +80,29 @@ int main(int argc, char* argv[]) {
 
 		screenSurface = SDL_GetWindowSurface( window );
 
-		SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0,42,254));
+		SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format,186,186,186));
 
 		SDL_UpdateWindowSurface( window );
+//render start
+		//Load media
+				if( !loadMedia() )
+				{
+					printf( "Failed to load media!\n" );
+				}
+				else
+				{
+					//Apply the image
+					SDL_BlitSurface( gHelloWorld, NULL, screenSurface, NULL );
 
-		SDL_Delay(3000);
+					//Update the surface
+					SDL_UpdateWindowSurface( window );
+
+					//Wait two seconds
+					//SDL_Delay( 2000 );
+				}
+//render end
+
+		SDL_Delay(5000);
 
 		SDL_DestroyWindow(window);
 
