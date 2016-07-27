@@ -6,6 +6,7 @@
 #if defined(__APPLE__)
 		#include "SDL2/SDL.h"
         #include "SDL2_image/SDL_image.h"
+		#include "SDL2_ttf/SDL_ttf.h"
 
 #endif
 #if defined(__linux__)
@@ -30,8 +31,14 @@ bool keyon = true;
  int ky =550;
  int kx2 =2000;
  int ky2 =550;
+ string healthnum;
 
+ //health number
+int healthn = 100;
 
+int ammon = 30;
+
+string ammonum ;
 //Texture wrapper class
 class LTexture
 {
@@ -115,6 +122,12 @@ LTexture ghealthTexture;
 LTexture gammoTexture;
 LTexture gslotTexture;
 LTexture gslotorbTexture;
+
+LTexture ammoTexture;
+LTexture healthTexture;
+LTexture damageTexture;
+LTexture orbTexture;
+
 class GuiHealth
 {
 public:
@@ -136,6 +149,7 @@ public:
 	void arender( int camX, int camY );
 
 };
+
 
 
 void GuiAmmo::arender( int camX, int camY )
@@ -188,7 +202,13 @@ SDL_Window* gWindow = NULL;
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
 
-
+//Globally used font
+TTF_Font *gFont = NULL;
+TTF_Font *gFont2 = NULL;
+//Rendered texture
+LTexture gTextTexture;
+//Rendered texture
+LTexture aTextTexture;
 
 //The image we will load and show on the screen
 SDL_Surface* gHelloWorld = NULL;
@@ -300,6 +320,40 @@ void LTexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* ce
 	//Render to screen
 	SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
 }
+bool LTexture::loadFromRenderedText( std::string textureText, SDL_Color textColor )
+{
+	//Get rid of preexisting texture
+	free();
+
+	//Render text surface
+	SDL_Surface* textSurface = TTF_RenderText_Solid( gFont, textureText.c_str(), textColor );
+	if( textSurface == NULL )
+	{
+		printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
+	}
+	else
+	{
+		//Create texture from surface pixels
+        mTexture = SDL_CreateTextureFromSurface( gRenderer, textSurface );
+		if( mTexture == NULL )
+		{
+			printf( "Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError() );
+		}
+		else
+		{
+			//Get image dimensions
+			mWidth = textSurface->w;
+			mHeight = textSurface->h;
+		}
+
+		//Get rid of old surface
+		SDL_FreeSurface( textSurface );
+	}
+
+	//Return success
+	return mTexture != NULL;
+}
+
 
 int LTexture::getWidth()
 {
@@ -360,8 +414,43 @@ void Player::handleEvent( SDL_Event& e )
 							printf( "1 key has been press\n" );
 							keyon =true;
 
-
 														}
+
+							//this is to test the damage
+							if (state[SDL_SCANCODE_E]){
+														printf( "Player has been damaged\n" );
+														healthn= healthn - 1;
+														healthnum = to_string(healthn);
+														SDL_Color textColor = { 0, 0, 0 };
+														gTextTexture.loadFromRenderedText( healthnum, textColor);
+																					}
+							//this is to test the heal
+							if (state[SDL_SCANCODE_R]){
+																					printf( "Player has been healed\n" );
+																					healthn= healthn + 1;
+																					healthnum = to_string(healthn);
+																					SDL_Color textColor = { 0, 0, 0 };
+																					gTextTexture.loadFromRenderedText( healthnum, textColor);
+							}
+							//button to fire
+							// it will stop firing at 0
+												if(ammon > 0)	{
+							if (state[SDL_SCANCODE_Q] && e.key.repeat == 0){
+																					printf( "Player through knife\n" );
+																					ammon= ammon - 1;
+																					ammonum = to_string(ammon);
+																					SDL_Color textColor = { 0, 0, 0 };
+																					aTextTexture.loadFromRenderedText( ammonum, textColor);
+																												}
+							}
+												//this is to test the reload
+														if (state[SDL_SCANCODE_3]){
+																												printf( "Player pickup ammo\n" );
+																												ammon= ammon + .5;
+																												ammonum = to_string(ammon);
+																												SDL_Color textColor = { 0, 0, 0 };
+																												aTextTexture.loadFromRenderedText( ammonum, textColor);
+																																			}
 }
 
 void Player::move()
@@ -370,7 +459,7 @@ void Player::move()
     mPosX += mVelX;
 
     //If the dot went too far to the left or right
-    if( ( mPosX < 0 ) || ( mPosX + DOT_WIDTH > LEVEL_WIDTH ) )
+    if( ( mPosX < 25 ) || ( mPosX + DOT_WIDTH > 1941 ) )
     {
         //Move back
         mPosX -= mVelX;
@@ -380,7 +469,7 @@ void Player::move()
     mPosY += mVelY;
 
     //If the dot went too far up or down
-    if( ( mPosY < 0 ) || ( mPosY + DOT_HEIGHT > LEVEL_HEIGHT ) )
+    if( ( mPosY < 25 ) || ( mPosY + DOT_HEIGHT > 1440 ) )
     {
         //Move back
         mPosY -= mVelY;
@@ -409,7 +498,7 @@ bool init()
 	bool success = true;
 
 	//Initialize SDL
-	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+	if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
 	{
 		printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
 		success = false;
@@ -450,6 +539,14 @@ bool init()
 					printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
 					success = false;
 				}
+
+				 //Initialize SDL_ttf
+								if( TTF_Init() == -1 )
+								{
+									printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
+									success = false;
+								}
+
 			}
 		}
 
@@ -477,6 +574,8 @@ bool loadMedia()
 		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
+
+
 	//Load health texture
 		if( !ghealthTexture.loadFromFile( "Slayer-of-Dracula/image/healthbard.bmp" ) )
 		{
@@ -501,6 +600,45 @@ bool loadMedia()
 												success = false;
 							}
 
+			gFont = TTF_OpenFont( "Slayer-of-Dracula/Alexis Expanded.ttf",100 );
+				if( gFont == NULL )
+				{
+					printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+					success = false;
+				}
+				else
+					{
+						//Render text
+						SDL_Color textColor = { 0, 0, 0 };
+						healthnum = to_string(healthn);
+						if( !gTextTexture.loadFromRenderedText( healthnum, textColor ) )
+						{
+							printf( "Failed to render text texture!\n" );
+							success = false;
+						}
+
+
+					}
+
+				gFont2 = TTF_OpenFont( "Slayer-of-Dracula/Alexis Expanded.ttf",100 );
+								if( gFont2 == NULL )
+								{
+									printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+									success = false;
+								}
+								else
+									{
+										//Render text
+										SDL_Color textColor = { 0, 0, 0 };
+										ammonum = to_string(ammon);
+										if( !aTextTexture.loadFromRenderedText( ammonum, textColor ) )
+										{
+											printf( "Failed to render text texture!\n" );
+											success = false;
+										}
+									}
+
+
 	return success;
 }
 
@@ -513,6 +651,16 @@ void close()
 	gammoTexture.free();
 	gslotTexture.free();
 	gslotorbTexture.free();
+	gTextTexture.free();
+	aTextTexture.free();
+	healthTexture.free();
+	damageTexture.free();
+	ammoTexture.free();
+	orbTexture.free();
+
+	//Free global font
+		TTF_CloseFont( gFont );
+		gFont = NULL;
 	//Destroy window
 	SDL_DestroyRenderer( gRenderer );
 	SDL_DestroyWindow( gWindow );
@@ -537,7 +685,7 @@ int main(int argc, char* argv[]) {
 #if defined(__linux__)
 		cout <<"Running on Linux"<< endl;
 #endif
-
+//int x = 100 , y = 100;
 		//Start up SDL and create window
 			if( !init() )
 			{
@@ -566,8 +714,10 @@ int main(int argc, char* argv[]) {
 					GuiAmmo ammo;
 					GuiKey key;
 
+
 					//The camera area
 					SDL_Rect camera = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+					//SDL_Rect level = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 
 					//While application is running
 					while( !quit )
@@ -591,7 +741,8 @@ int main(int argc, char* argv[]) {
 						//Center the camera over the dot
 						camera.x = ( dot.getPosX() + Player::DOT_WIDTH / 2 ) - SCREEN_WIDTH / 2;
 						camera.y = ( dot.getPosY() + Player::DOT_HEIGHT / 2 ) - SCREEN_HEIGHT / 2;
-
+//level width 2048
+						// level height 1570
 						//Keep the camera in bounds
 						if( camera.x < 0 )
 						{
@@ -622,11 +773,16 @@ int main(int argc, char* argv[]) {
 
 						//Render objects
 						dot.render( camera.x, camera.y );
+
 						//Render objects
 						health.render( camera.x, camera.y );
 						key.keyrender( camera.x, camera.y );
 						key.keyorbrender( camera.x, camera.y );
 						ammo.arender( camera.x, camera.y );
+						//Render current frame
+					gTextTexture.render( 150, 50);
+					aTextTexture.render( 150, 200);
+
 
 
 						//Update screen
