@@ -4,6 +4,7 @@
 #if defined(_WIN32)||(_WIN64)
 		#include "SDL.h"
 		#include "SDL_image.h"
+	#include "SDL_mixer.h"
 		#include "SDL_ttf.h"
 
 
@@ -11,6 +12,7 @@
 #if defined(__APPLE__)
 		#include "SDL2/SDL.h"
         #include "SDL2_image/SDL_image.h"
+ 	 	 #include "SDL2_mixer/SDL_mixer.h"
 		#include "SDL2_ttf/SDL_ttf.h"
 		#include "unistd.h"
 
@@ -18,12 +20,14 @@
 #if defined(__linux__)
 		#include "SDL2/SDL.h"
 		#include "SDL2_image/SDL_image.h"
+		#include "SDL2_mixer/SDL_mixer.h"
 		#include "SDL2_ttf/SDL_ttf.h"
 		#include "unistd.h"
 #endif
 
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <string>
 using namespace std;
@@ -36,12 +40,16 @@ const int SCREEN_WIDTH = 1024;
 const int SCREEN_HEIGHT = 785;
 SDL_Rect dam = {500,2150,50,50};
 
-SDL_Rect test = {1000,2100,10,10};
+SDL_Rect test = {1000,2100,10,100};
 
 bool testfire = false;
 
 bool playerfire = false;
 bool throwknive = false;
+
+Mix_Music *gMusic = NULL;
+Mix_Chunk *gBing = NULL;
+
 
 bool keyon = true;
  int kx =790;
@@ -51,6 +59,9 @@ bool keyon = true;
  string healthnum;
  SDL_Rect col = {200,2200,10,10};
  SDL_Rect primary = {1100,225,20,100};
+ SDL_Rect primary2 = {2000,225,20,200};
+ SDL_Rect boss = {1500,225,20,200};
+
  SDL_Rect colum = {500,2200,10,10};
  //enemy bullet
  SDL_Rect bullet = {800,2200,10,10};
@@ -58,7 +69,7 @@ bool keyon = true;
  SDL_Rect tknive = {10,2000,10,10};
  SDL_Rect Range = {200 , 1500 , 500,1000};
 
-
+ SDL_Rect orb = {1500,650,50,50};
  SDL_Rect playerPos = {100,2200,50,100};
  SDL_Rect skull1Pos;
 
@@ -160,12 +171,14 @@ LTexture gslotTexture;
 LTexture gslotorbTexture;
 LTexture standTexture;
 LTexture primaryTexture;
+LTexture primary2Texture;
 LTexture ammoTexture;
 LTexture healthTexture;
 LTexture damageTexture;
 LTexture orbTexture;
 LTexture bullTexture;
 LTexture kniTexture;
+LTexture bossTexture;
 
 
 class Stand
@@ -176,15 +189,35 @@ public:
 void Stand:: render(int x, int y){
 	standTexture.render(colum.x - x,colum.y - y);
 }
-class Prime
+class Boss
 {
 public:
 	void render(int x, int y);
 };
+void Boss:: render(int x, int y){
+	bossTexture.render(boss.x - x,boss.y - y);
+}
+class Prime
+{
+public:
+	void render(int x, int y);
+	void render2(int x, int y);
+};
 void Prime:: render(int x, int y){
 	primaryTexture.render(primary.x - x,primary.y - y);
 }
+void Prime:: render2(int x, int y){
+	primary2Texture.render(primary2.x - x,primary2.y - y);
+}
 
+class Orb
+{
+public:
+	void render(int x, int y);
+};
+void Orb:: render(int x, int y){
+	orbTexture.render(orb.x - x,orb.y - y);
+}
 class Knive
 {
 public:
@@ -516,13 +549,13 @@ void Player::handleEvent( SDL_Event& e )
 	//input for testing slot
 							if (state[SDL_SCANCODE_1]){
 								printf( "1 key has been press\n" );
-								keyon =false;
+							//	keyon =false;
 
 
 							}
 							if (state[SDL_SCANCODE_2]){
 							printf( "1 key has been press\n" );
-							keyon =true;
+						//	keyon =true;
 
 														}
 
@@ -724,6 +757,16 @@ bool loadMedia()
 						printf( "Failed to load dot texture!\n" );
 						success = false;
 					}
+				if( !primary2Texture.loadFromFile( "Slayer-of-Dracula/image/primary.bmp" ) )
+									{
+										printf( "Failed to load dot texture!\n" );
+										success = false;
+									}
+				if( !bossTexture.loadFromFile( "Slayer-of-Dracula/image/boss.bmp" ) )
+													{
+														printf( "Failed to load dot texture!\n" );
+														success = false;
+													}
 				// load throwing knive
 								if( !kniTexture.loadFromFile( "Slayer-of-Dracula/image/tknive.bmp" ) )
 									{
@@ -731,10 +774,14 @@ bool loadMedia()
 										success = false;
 									}
 
-
+								if( !orbTexture.loadFromFile( "Slayer-of-Dracula/image/ord.bmp" ) )
+											{
+												printf( "Failed to load dot texture!\n" );
+												success = false;
+											}
 
 	// load health
-		if( !healthTexture.loadFromFile( "Slayer-of-Dracula/image/heal.bmp" ) )
+		if( !healthTexture.loadFromFile( "Slayer-of-Dracula/image/heal2.bmp" ) )
 			{
 				printf( "Failed to load dot texture!\n" );
 				success = false;
@@ -821,23 +868,15 @@ bool loadMedia()
 											success = false;
 										}
 									}
-								/*gFont3 = TTF_OpenFont( "Slayer-of-Dracula/Alexis Expanded.ttf",12 );
-																if( gFont3 == NULL )
-																{
-																	printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
-																	success = false;
-																}
-																else
-																	{
-																		//Render text
-																		SDL_Color textColor = { 125, 12, 0 };
+								 //Load sound effects
+							/*
+								    gBing = Mix_LoadWAV( "audio/noise.wav" );
+								    if( gBing == NULL )
+								    {
+								        printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+								        success = false;
+								    }*/
 
-																		if( !hTextTexture.loadFromRenderedText("press 1 &2 to test slot, press Q& 3 to test ammo, press e & r to test health ", textColor ) )
-																		{
-																			printf( "Failed to render text texture!\n" );
-																			success = false;
-																		}
-																	}*/
 
 
 	return success;
@@ -861,12 +900,15 @@ void close()
 	orbTexture.free();
 	standTexture.free();
 	primaryTexture.free();
+	primary2Texture.free();
 	bullTexture.free();
 	kniTexture.free();
+	bossTexture.free();
 
 	//Free global font
 		TTF_CloseFont( gFont );
 		gFont = NULL;
+		 Mix_FreeChunk( gBing );
 	//Destroy window
 	SDL_DestroyRenderer( gRenderer );
 	SDL_DestroyWindow( gWindow );
@@ -895,8 +937,16 @@ int main(int argc, char* argv[]) {
 
 
 		bool hit = false;
+		bool gamedoor = false;
 		bool enemyhit = false;
 		bool enemydead = false;
+		bool bossdead = false;
+		bool stop = false;
+		bool bossturn = true;
+		int turretHealth = 1;
+		int bossHealth = 1;
+		 bossHealth = rand() % 20 +7;
+			turretHealth = rand() % 5 +1;
 
 		int startEnemyY = dam.y+10;
 
@@ -936,6 +986,9 @@ int main(int argc, char* argv[]) {
 					Prime pri;
 					bull b;
 					Knive knive;
+					Orb or1;
+					Boss bos;
+
 
 
 
@@ -949,20 +1002,20 @@ int main(int argc, char* argv[]) {
 					Player.w = 50;
 					Player.h = 50;
 
-					SDL_Rect box = {0,1825,2300,100};
-					SDL_Rect box2 = {0,1800,2300,100};
+					SDL_Rect box = {0,1910,2300,10};
+					SDL_Rect box2 = {0,1850,2300,10};
 					SDL_Rect box3 = {0,1525,1100,100};
-					SDL_Rect box4 = {0,1500,1100,100};
+					SDL_Rect box4 = {0,1511,1100,2};
 					SDL_Rect box5 = {1000,1225,1100,100};
 					SDL_Rect box6 = {1000,1200,1100,100};
-					SDL_Rect box7 = {2200,1050,1000,100};
-					SDL_Rect box8 = {2200,1025,1000,100};
+					SDL_Rect box7 = {2200,1175,1000,10};
+					SDL_Rect box8 = {2200,1100,1000,10};
 					SDL_Rect box9 = {900,825,1200,100};
 					SDL_Rect box10 = {900,800,1200,100};
-					SDL_Rect box11 = {0,600,900,100};
-					SDL_Rect box12 = {0,575,900,100};
-					SDL_Rect box13 = {2310,500,900,100};
-					SDL_Rect box14 = {2300,475,900,100};
+					SDL_Rect box11 = {0,700,850,10};
+					SDL_Rect box12 = {0,600,850,10};
+					SDL_Rect box13 = {2310,610,900,10};
+					SDL_Rect box14 = {2300,530,900,10};
 					SDL_Rect boxa1 = {1000,475,1000,100};
 					SDL_Rect boxa2 = {1000,475,100,100};
 					SDL_Rect boxa3 = {1000,450,1000,100};
@@ -972,8 +1025,8 @@ int main(int argc, char* argv[]) {
 
 					SDL_Rect door = {1025,250,10,200};
 
-					tknive.x = playerPos.x;
-					tknive.y = playerPos.y;
+					tknive.x = dot.mPosX;
+					tknive.y = dot.mPosY;
 					bullet.x = dam.x;
 					bullet.y = startEnemyY;
 
@@ -1029,6 +1082,8 @@ int main(int argc, char* argv[]) {
 
 						if( SDL_HasIntersection(&playerPos, &box) || SDL_HasIntersection(&playerPos, &box7)|| SDL_HasIntersection(&playerPos, &box9)){
 						dot.mPosY += 10;
+
+
 						}
 						if( SDL_HasIntersection(&playerPos, &box2) || SDL_HasIntersection(&playerPos, &box8)|| SDL_HasIntersection(&playerPos, &box10)){
 												dot.mPosY -= 10;
@@ -1057,6 +1112,31 @@ int main(int argc, char* argv[]) {
 						if( SDL_HasIntersection(&playerPos, &boxa4) || SDL_HasIntersection(&playerPos, &boxb2)){
 																	dot.mPosX += 10;
 																				}
+						if( SDL_HasIntersection(&playerPos, &orb) ){
+							orb.x = -1000;
+							gamedoor = true;
+							keyon =false;
+						}
+						if(gamedoor == true){
+							primary.y = -1000;
+							primary2.y = -1000;
+							door.y = -1000;
+						}
+
+						if(bossturn == true && stop == false){
+							boss.y -= 1;
+
+							if(boss.y == 150){
+								bossturn = false;
+							}
+						}
+						if(bossturn == false && stop == false){
+													boss.y += 1;
+
+													if(boss.y == 225){
+														bossturn =true;
+													}
+												}
 
 
 
@@ -1079,28 +1159,60 @@ int main(int argc, char* argv[]) {
 						if( SDL_HasIntersection(&dam, &tknive) && enemyhit == false ){
 							printf( "enemy hit\n" );
 							tknive.x = -1000;
-							dam.y = -1000;
+							//dam.y = -1000;
+							turretHealth -= 1;
 							playerfire = false;
 							throwknive = false;
 							enemyhit = true;
-							enemydead = true;
+
 
 						}
+						if(turretHealth <= 0){
+							//printf( "enemy destory\n" );
+							dam.y = -1000;
+							enemydead = true;
+						}
+						if( SDL_HasIntersection(&boss, &tknive) && enemyhit == false ){
+													printf( "enemy hit\n" );
+													tknive.x = -1000;
+													//dam.y = -1000;
+													bossHealth -= 1;
+													playerfire = false;
+													throwknive = false;
+													enemyhit = true;
+
+
+												}
+												if(bossHealth <= 0){
+													//printf( "enemy destory\n" );
+													boss.y = -1000;
+													bossdead = true;
+													stop = true;
+												}
+
+
 						if( SDL_HasIntersection(&playerPos, &primary) || SDL_HasIntersection(&playerPos, &door) ){
 							dot.mPosX -= 10;
 						}
+						if( SDL_HasIntersection(&playerPos, &primary2) ){
+													dot.mPosX += 10;
+												}
+
 
 
 
 						if( SDL_HasIntersection(&playerPos, &col) ){
+							col.x = - 1000;
+							// Mix_PlayChannel( -1, gBing, 0 );
 
 							printf( "Player pickup ammo\n" );
-										ammon= ammon + 1;
+										ammon= ammon + 10;
 									ammonum = to_string(ammon);
 									SDL_Color textColor = { 0, 0, 0 };
 										aTextTexture.loadFromRenderedText( ammonum, textColor);
 
 						}
+						/*
 						if( SDL_HasIntersection(&playerPos, &dam) ){
 
 								printf( "Player has been damaged\n" );
@@ -1109,11 +1221,12 @@ int main(int argc, char* argv[]) {
 								SDL_Color textColor = { 0, 0, 0 };
 								gTextTexture.loadFromRenderedText( healthnum, textColor);
 
-												}
+												}*/
 						if( SDL_HasIntersection(&playerPos, &test) ){
+							test.x = -1000;
 
 														printf( "Player has been heal\n" );
-														healthn= healthn + 1;
+														healthn= healthn + 30;
 														healthnum = to_string(healthn);
 														SDL_Color textColor = { 0, 0, 0 };
 														gTextTexture.loadFromRenderedText( healthnum, textColor);
@@ -1198,17 +1311,22 @@ int main(int argc, char* argv[]) {
 
 
 						//Render objects
-						health.render( camera.x, camera.y );
-						key.keyrender( camera.x, camera.y );
-						key.keyorbrender( camera.x, camera.y );
-						ammo.arender( camera.x, camera.y );
-						d.render( camera.x, camera.y);
+						bos.render( camera.x, camera.y);
 						h.render( camera.x, camera.y);
+
+						d.render( camera.x, camera.y);
+
 						amo.arender(camera.x, camera.y);
 						pri.render( camera.x, camera.y);
+						pri.render2( camera.x, camera.y);
 						sta.render(camera.x, camera.y);
+						or1.render(camera.x, camera.y);
 						//knive.render(camera.x, camera.y);
 						//Render current frame
+						health.render( camera.x, camera.y );
+											key.keyrender( camera.x, camera.y );
+											key.keyorbrender( camera.x, camera.y );
+											ammo.arender( camera.x, camera.y );
 					gTextTexture.render( 150, 50);
 					aTextTexture.render( 150, 200);
 					hTextTexture.render( 400, 10);
