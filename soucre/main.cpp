@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <string>
+#include <math.h>
+#include <vector>
 using namespace std;
 //The dimensions of the level
 const int LEVEL_WIDTH = 3072;
@@ -41,6 +43,7 @@ const int SCREEN_HEIGHT = 785;
 SDL_Rect dam = {500,2150,50,50};
 
 SDL_Rect test = {1000,2100,10,100};
+SDL_Rect hl = {1500,2100,10,100};
 
 bool testfire = false;
 
@@ -60,7 +63,7 @@ bool keyon = true;
  SDL_Rect col = {200,2200,10,10};
  SDL_Rect primary = {1100,225,20,100};
  SDL_Rect primary2 = {2000,225,20,200};
- SDL_Rect boss = {1500,225,20,200};
+ SDL_Rect boss = {1500,225,100,200};
 
  SDL_Rect colum = {500,2200,10,10};
  //enemy bullet
@@ -174,6 +177,7 @@ LTexture primaryTexture;
 LTexture primary2Texture;
 LTexture ammoTexture;
 LTexture healthTexture;
+LTexture health2Texture;
 LTexture damageTexture;
 LTexture orbTexture;
 LTexture bullTexture;
@@ -308,11 +312,15 @@ void bull::render(int x, int y){
 class heal{
 public:
 
-	void render(int x2, int y2);
+	void rendera(int x2, int y2);
+	void renderb(int x2, int y2);
 };
 
-void heal::render(int x2, int y2){
+void heal::rendera(int x2, int y2){
 	healthTexture.render(test.x - x2 , test.y -y2);
+}
+void heal::renderb(int x2, int y2){
+	health2Texture.render(hl.x - x2 , hl.y -y2);
 }
 
 class Ammo{
@@ -786,6 +794,11 @@ bool loadMedia()
 				printf( "Failed to load dot texture!\n" );
 				success = false;
 			}
+		if( !health2Texture.loadFromFile( "Slayer-of-Dracula/image/heal2.bmp" ) )
+					{
+						printf( "Failed to load dot texture!\n" );
+						success = false;
+					}
 		// load health
 				if( !ammoTexture.loadFromFile( "Slayer-of-Dracula/image/knive.bmp" ) )
 					{
@@ -894,7 +907,8 @@ void close()
 	gTextTexture.free();
 	aTextTexture.free();
 	hTextTexture.free();
-	healthTexture.free();
+
+	health2Texture.free();
 	damageTexture.free();
 	ammoTexture.free();
 	orbTexture.free();
@@ -934,7 +948,11 @@ int main(int argc, char* argv[]) {
 		cout <<"Running on Linux"<< endl;
 #endif
 
-
+//testing
+//float startX = dam.x;
+//float startY = dam.y;
+//float endX = playerPos.x;
+//float endY = playerPos.y;
 
 		bool hit = false;
 		bool gamedoor = false;
@@ -949,6 +967,7 @@ int main(int argc, char* argv[]) {
 			turretHealth = rand() % 5 +1;
 
 		int startEnemyY = dam.y+10;
+		bool fireright = false;
 
 
 //int x = 100 , y = 100;
@@ -980,7 +999,7 @@ int main(int argc, char* argv[]) {
 					GuiAmmo ammo;
 					GuiKey key;
 					damage d;
-				Ammo amo;
+					Ammo amo;
 					heal h;
 					Stand sta;
 					Prime pri;
@@ -1022,6 +1041,8 @@ int main(int argc, char* argv[]) {
 					SDL_Rect boxa4 = {2000,475,100,100};
 					SDL_Rect boxb = {1000,1,100,200};
 					SDL_Rect boxb2 = {1900,1,150,200};
+					SDL_Rect boxc = {2510,2150,1000,10};
+					SDL_Rect boxc2 = {2510,2055,1000,10};
 
 					SDL_Rect door = {1025,250,10,200};
 
@@ -1080,12 +1101,12 @@ int main(int argc, char* argv[]) {
 							camera.y = LEVEL_HEIGHT - camera.h;
 						}
 
-						if( SDL_HasIntersection(&playerPos, &box) || SDL_HasIntersection(&playerPos, &box7)|| SDL_HasIntersection(&playerPos, &box9)){
+						if( SDL_HasIntersection(&playerPos, &box) || SDL_HasIntersection(&playerPos, &boxc) ||SDL_HasIntersection(&playerPos, &box7)|| SDL_HasIntersection(&playerPos, &box9)){
 						dot.mPosY += 10;
 
 
 						}
-						if( SDL_HasIntersection(&playerPos, &box2) || SDL_HasIntersection(&playerPos, &box8)|| SDL_HasIntersection(&playerPos, &box10)){
+						if( SDL_HasIntersection(&playerPos, &box2) ||SDL_HasIntersection(&playerPos, &boxc2) || SDL_HasIntersection(&playerPos, &box8)|| SDL_HasIntersection(&playerPos, &box10)){
 												dot.mPosY -= 10;
 												}
 						if( SDL_HasIntersection(&playerPos, &box3) ||  SDL_HasIntersection(&playerPos, &box11)){
@@ -1137,6 +1158,7 @@ int main(int argc, char* argv[]) {
 														bossturn =true;
 													}
 												}
+
 
 
 
@@ -1232,12 +1254,40 @@ int main(int argc, char* argv[]) {
 														gTextTexture.loadFromRenderedText( healthnum, textColor);
 
 																		}
-						if( SDL_HasIntersection(&playerPos, &Range) && enemydead == false){
+						if( SDL_HasIntersection(&playerPos, &hl) ){
+													hl.x = -1000;
+
+																				printf( "Player has been heal\n" );
+																				healthn= healthn + 30;
+																				healthnum = to_string(healthn);
+																				SDL_Color textColor = { 0, 0, 0 };
+																				gTextTexture.loadFromRenderedText( healthnum, textColor);
+
+																								}
+						//checking distance
+						double distancex = ((dam.x + (dam.w / 2))
+										- (playerPos.x + (playerPos.w / 2)))
+										* ((dam.x + (dam.w / 2))
+												- (playerPos.x + (playerPos.w / 2)));
+								double distancey = (dam.y - playerPos.y)
+										* (dam.y - playerPos.y);
+
+								double calcdistance = sqrt(distancex + distancey);
+								//cout << calcdistance << endl;
+						if( /*SDL_HasIntersection(&playerPos, &Range)*/ calcdistance <= 300 && enemydead == false){
 							testfire = true;
 
 						}
+						if( playerPos.x > dam.x){
+							//printf( "Fire backward \n" );
+							fireright = true;
+						}
+						if( playerPos.x < dam.x){
+													//printf( "Fire backward \n" );
+													fireright = false;
+												}
 
-						//Play is dead
+						//if Play is dead
 						if(healthn <= 0){
 							healthn= 0;
 							healthnum = to_string(healthn);
@@ -1275,12 +1325,22 @@ int main(int argc, char* argv[]) {
 							}
 													//printf( "test enemy bullet\n" );
 													b.render( camera.x, camera.y);
-													bullet.x -= 5;
-													if( bullet.x == 20){
-															bullet.x = -1000;
+													if(fireright == false){
+													bullet.x -= 15;
+													}
+													if(fireright == true){
+																				bullet.x += 15;
+																}
+													if( bullet.x <= 20){
+															bullet.y = -1000;
 															hit = true;
 															testfire = false;
 																}
+													if( bullet.x >= 3000){
+																	bullet.y = -1000;
+																	hit = true;
+																			testfire = false;
+																			}
 
 												}
 						//player throw knife
@@ -1312,7 +1372,8 @@ int main(int argc, char* argv[]) {
 
 						//Render objects
 						bos.render( camera.x, camera.y);
-						h.render( camera.x, camera.y);
+						h.rendera( camera.x, camera.y);
+						h.renderb( camera.x, camera.y);
 
 						d.render( camera.x, camera.y);
 
