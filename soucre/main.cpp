@@ -49,6 +49,8 @@ bool testfire = false;
 
 bool playerfire = false;
 bool throwknive = false;
+bool playerfire1 = false;
+bool throwknive1 = false;
 
 Mix_Music *gMusic = NULL;
 Mix_Chunk *gBing = NULL;
@@ -64,6 +66,14 @@ bool keyon = true;
  SDL_Rect primary = {1100,225,20,100};
  SDL_Rect primary2 = {2000,225,20,200};
  SDL_Rect boss = {1500,225,100,200};
+ // x 2968 y 1900
+ SDL_Rect cand = {2968,1900,100,200};
+ // x 2700 y 2200
+ SDL_Rect ehand = {1500,1700,100,200};
+ SDL_Rect rangehand = {ehand.x-300 ,ehand.y-300 , 600,600};
+
+ SDL_Rect losebar = {200,-1000,100,200};
+ SDL_Rect wonbar = {200,-1000,100,200};
 
  SDL_Rect colum = {500,2200,10,10};
  //enemy bullet
@@ -183,6 +193,10 @@ LTexture orbTexture;
 LTexture bullTexture;
 LTexture kniTexture;
 LTexture bossTexture;
+LTexture candleTexture;
+LTexture handTexture;
+LTexture wonTexture;
+LTexture loseTexture;
 
 
 class Stand
@@ -192,6 +206,18 @@ public:
 };
 void Stand:: render(int x, int y){
 	standTexture.render(colum.x - x,colum.y - y);
+}
+class bar
+{
+public:
+	void lrender();
+	void wrender();
+};
+void bar:: lrender(){
+	loseTexture.render(losebar.x,losebar.y );
+}
+void bar:: wrender(){
+	wonTexture.render(wonbar.x ,wonbar.y );
 }
 class Boss
 {
@@ -221,6 +247,14 @@ public:
 };
 void Orb:: render(int x, int y){
 	orbTexture.render(orb.x - x,orb.y - y);
+}
+class EvilHand
+{
+public:
+	void render(int x, int y);
+};
+void EvilHand:: render(int x, int y){
+	handTexture.render(ehand.x - x,ehand.y - y);
 }
 class Knive
 {
@@ -288,6 +322,19 @@ void GuiKey::keyorbrender( int camX, int camY )
 			gslotorbTexture.render( 790,550);
 			}
 }
+
+class candle{
+public:
+
+	void render(int x, int y);
+};
+
+void candle::render(int x, int y){
+	candleTexture.render(cand.x - x,cand.y - y);
+}
+
+
+
 
 class damage{
 public:
@@ -568,21 +615,15 @@ void Player::handleEvent( SDL_Event& e )
 														}
 
 							//this is to test the damage
-							if (state[SDL_SCANCODE_E]){
-														printf( "Player has been damaged\n" );
-														healthn= healthn - 1;
-														healthnum = to_string(healthn);
-														SDL_Color textColor = { 0, 0, 0 };
-														gTextTexture.loadFromRenderedText( healthnum, textColor);
-																					}
+
 							//this is to test the heal
-							if (state[SDL_SCANCODE_R]){
+							/*if (state[SDL_SCANCODE_R]){
 																					printf( "Player has been healed\n" );
 																					healthn= healthn + 1;
 																					healthnum = to_string(healthn);
 																					SDL_Color textColor = { 0, 0, 0 };
 																					gTextTexture.loadFromRenderedText( healthnum, textColor);
-							}
+							}*/
 							//button to fire
 							// it will stop firing at 0
 												if(ammon > 0)	{
@@ -600,17 +641,24 @@ void Player::handleEvent( SDL_Event& e )
 
 																					}
 							}
-												//this is to test the reload
-														if (state[SDL_SCANCODE_3]){
-															/*printf( "Player pickup ammo\n" );
-															ammon= ammon + .5;
-															ammonum = to_string(ammon);
-															SDL_Color textColor = { 0, 0, 0 };
-															hTextTexture.loadFromRenderedText( ammonum, textColor);
-															*/
-															//testfire = true;
+												/*if (state[SDL_SCANCODE_E] && playerfire  == false && ammon >= 0){
+																																	printf( "Player through knife\n" );
+																																	ammon= ammon - 1;
+																																	ammonum = to_string(ammon);
+																																	SDL_Color textColor = { 0, 0, 0 };
+																																	aTextTexture.loadFromRenderedText( ammonum, textColor);
 
-																}
+																																	playerfire1 = true;
+																																	throwknive1 = true;
+
+
+
+																																	}
+*/
+
+
+												//this is to test the reload
+
 
 
 }
@@ -691,7 +739,7 @@ bool init()
 		}
 
 		//Create window
-		gWindow = SDL_CreateWindow( "Dracula", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+		gWindow = SDL_CreateWindow( "Slayer of Dracula", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
 		if( gWindow == NULL )
 		{
 			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
@@ -753,6 +801,30 @@ bool loadMedia()
 			printf( "Failed to load dot texture!\n" );
 			success = false;
 		}
+	// load hand
+		if( !handTexture.loadFromFile( "Slayer-of-Dracula/image/ehand.bmp" ) )
+			{
+				printf( "Failed to load dot texture!\n" );
+				success = false;
+			}
+		// load
+	// load candle
+		if( !candleTexture.loadFromFile( "Slayer-of-Dracula/image/candle.bmp" ) )
+			{
+				printf( "Failed to load dot texture!\n" );
+				success = false;
+			}
+		//lose /won
+		if( !loseTexture.loadFromFile( "Slayer-of-Dracula/image/losebar.bmp" ) )
+					{
+						printf( "Failed to load dot texture!\n" );
+						success = false;
+					}
+		if( !wonTexture.loadFromFile( "Slayer-of-Dracula/image/Wonbar.bmp" ) )
+							{
+								printf( "Failed to load dot texture!\n" );
+								success = false;
+							}
 	// load column
 		if( !standTexture.loadFromFile( "Slayer-of-Dracula/image/colum.bmp" ) )
 			{
@@ -908,6 +980,7 @@ void close()
 	aTextTexture.free();
 	hTextTexture.free();
 
+
 	health2Texture.free();
 	damageTexture.free();
 	ammoTexture.free();
@@ -918,6 +991,10 @@ void close()
 	bullTexture.free();
 	kniTexture.free();
 	bossTexture.free();
+	candleTexture.free();
+	handTexture.free();
+	wonTexture.free();
+	loseTexture.free();
 
 	//Free global font
 		TTF_CloseFont( gFont );
@@ -953,7 +1030,8 @@ int main(int argc, char* argv[]) {
 //float startY = dam.y;
 //float endX = playerPos.x;
 //float endY = playerPos.y;
-
+		bool stophand = false;
+		Uint32 callback( Uint32 interval, void* param );
 		bool hit = false;
 		bool gamedoor = false;
 		bool enemyhit = false;
@@ -963,8 +1041,10 @@ int main(int argc, char* argv[]) {
 		bool bossturn = true;
 		int turretHealth = 1;
 		int bossHealth = 1;
+		int handHealth = 1;
 		 bossHealth = rand() % 20 +7;
 			turretHealth = rand() % 5 +1;
+			handHealth = rand() % 6 +1;
 
 		int startEnemyY = dam.y+10;
 		bool fireright = false;
@@ -994,7 +1074,7 @@ int main(int argc, char* argv[]) {
 					//The dot that will be moving around on the screen
 					Player dot;
 
-					// Gui health
+
 					GuiHealth health;
 					GuiAmmo ammo;
 					GuiKey key;
@@ -1007,6 +1087,9 @@ int main(int argc, char* argv[]) {
 					Knive knive;
 					Orb or1;
 					Boss bos;
+					candle ca;
+					EvilHand eh;
+					bar barr;
 
 
 
@@ -1185,6 +1268,8 @@ int main(int argc, char* argv[]) {
 							turretHealth -= 1;
 							playerfire = false;
 							throwknive = false;
+
+						throwknive = false;
 							enemyhit = true;
 
 
@@ -1201,6 +1286,7 @@ int main(int argc, char* argv[]) {
 													bossHealth -= 1;
 													playerfire = false;
 													throwknive = false;
+
 													enemyhit = true;
 
 
@@ -1211,6 +1297,25 @@ int main(int argc, char* argv[]) {
 													bossdead = true;
 													stop = true;
 												}
+												if( SDL_HasIntersection(&ehand, &tknive) && enemyhit == false ){
+																									printf( "enemy hand hit\n" );
+																									tknive.x = -1000;
+																									//dam.y = -1000;
+																									handHealth -= 1;
+																									playerfire = false;
+																									throwknive = false;
+
+																									enemyhit = true;
+
+
+																								}
+																								if(handHealth <= 0){
+
+																									ehand.y = -1000;
+
+
+																								}
+
 
 
 						if( SDL_HasIntersection(&playerPos, &primary) || SDL_HasIntersection(&playerPos, &door) ){
@@ -1234,8 +1339,8 @@ int main(int argc, char* argv[]) {
 										aTextTexture.loadFromRenderedText( ammonum, textColor);
 
 						}
-						/*
-						if( SDL_HasIntersection(&playerPos, &dam) ){
+
+						/*if( SDL_HasIntersection(&playerPos, &dam) ){
 
 								printf( "Player has been damaged\n" );
 								healthn= healthn - 1;
@@ -1286,6 +1391,54 @@ int main(int argc, char* argv[]) {
 													//printf( "Fire backward \n" );
 													fireright = false;
 												}
+
+						//Evil Hand
+						double distancex1 = ((ehand.x + (ehand.w / 2))
+																- (playerPos.x + (playerPos.w / 2)))
+																* ((ehand.x + (ehand.w / 2))
+																		- (playerPos.x + (playerPos.w / 2)));
+														double distancey1 = (ehand.y - playerPos.y)
+																* (ehand.y - playerPos.y);
+
+														double calcdistance1 = sqrt(distancex1 + distancey1);
+
+
+						if(SDL_HasIntersection(&playerPos, &rangehand)){
+							//printf( "Test Evil hand  \n" );
+							stophand = false;
+							if(playerPos.x >= ehand.x && stophand == false){
+								ehand.x += 1;
+								rangehand.x += 1;
+							}
+							if(playerPos.x <= ehand.x && stophand == false){
+								ehand.x -= 1;
+								rangehand.x -= 1;
+														}
+							if(playerPos.y >= ehand.y ){
+										ehand.y += 1;
+										rangehand.y += 1;
+													}
+							if(playerPos.y <= ehand.y ){
+															ehand.y -= 1;
+															rangehand.y -= 1;
+																					}
+
+						}
+						if(!SDL_HasIntersection(&playerPos, &rangehand)){
+							stophand = true;
+						}
+						//enemy hand deal damage to player
+						if(calcdistance1 < 30){
+							printf( "Player has been damaged by hand\n" );
+
+
+							healthn= healthn - 1;
+							healthnum = to_string(healthn);
+							SDL_Color textColor = { 0, 0, 0 };
+							gTextTexture.loadFromRenderedText( healthnum, textColor);
+												}
+
+
 
 						//if Play is dead
 						if(healthn <= 0){
@@ -1343,6 +1496,7 @@ int main(int argc, char* argv[]) {
 																			}
 
 												}
+
 						//player throw knife
 						if(throwknive == true){
 
@@ -1376,7 +1530,9 @@ int main(int argc, char* argv[]) {
 						h.renderb( camera.x, camera.y);
 
 						d.render( camera.x, camera.y);
+						ca.render( camera.x, camera.y);
 
+						eh.render( camera.x, camera.y);
 						amo.arender(camera.x, camera.y);
 						pri.render( camera.x, camera.y);
 						pri.render2( camera.x, camera.y);
@@ -1391,6 +1547,8 @@ int main(int argc, char* argv[]) {
 					gTextTexture.render( 150, 50);
 					aTextTexture.render( 150, 200);
 					hTextTexture.render( 400, 10);
+					barr.lrender();
+					barr.wrender();
 
 
 						//Update screen
