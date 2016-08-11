@@ -45,12 +45,16 @@ SDL_Rect dam = {500,2150,50,50};
 SDL_Rect dam1 = {2000,2150,50,50};
 SDL_Rect dam2 = {1000,1700,50,50};
 SDL_Rect dam3 = {500,450,50,50};
-
+int knx ;
+int kny ;
+int knx2 ;
+int kny2 ;
 //Health Potion
 SDL_Rect test = {800,2150,10,100};
 SDL_Rect hl = {1700,1700,10,100};
 SDL_Rect hl2 = {1000,700,10,100};
-
+bool starthurt =false;
+		bool starthurt2 =false;
 bool testfire = false;
 bool testfire2 = false;
 bool testfire3 = false;
@@ -60,6 +64,7 @@ bool playerfire = false;
 bool throwknive = false;
 bool playerfire1 = false;
 bool throwknive1 = false;
+bool stopfire = false;
 
 Mix_Music *gMusic = NULL;
 Mix_Chunk *gBing = NULL;
@@ -87,7 +92,8 @@ bool keyon = true;
  SDL_Rect cand3 = {2968,300,100,200};
  // x 2700 y 2200
  //Evil Hand
- SDL_Rect ehand = {1500,1700,100,200};
+ //1700
+ SDL_Rect ehand = {1500,2000,100,200};
  SDL_Rect rangehand = {ehand.x-300 ,ehand.y-300 , 600,600};
  SDL_Rect ehand1 = {2500,400,100,200};
   SDL_Rect rangehand1 = {ehand1.x-300 ,ehand1.y-300 , 600,600};
@@ -112,13 +118,15 @@ bool keyon = true;
  SDL_Rect bullet3 = {800,2200,10,10};
  SDL_Rect bullet4 = {800,2200,10,10};
 
- //throw knive
- SDL_Rect tknive = {10,2000,10,10};
- SDL_Rect Range = {200 , 1500 , 500,1000};
+
 
  SDL_Rect orb = {1500,650,50,50};
- SDL_Rect playerPos = {100,2200,50,100};
+ SDL_Rect playerPos = {300,2200,50,100};
  SDL_Rect skull1Pos;
+ //throw knive
+  SDL_Rect tknive = {playerPos.x,playerPos.y,10,10};
+  SDL_Rect tknive2 = {playerPos.x,playerPos.y,10,10};
+  SDL_Rect Range = {200 , 1500 , 500,1000};
 
  		// Set the x, y, width and height SDL Rectangle values
  		//skull1Pos.x = 109;
@@ -244,6 +252,7 @@ LTexture bull4Texture;
 
 
 LTexture kniTexture;
+LTexture kni2Texture;
 LTexture bossTexture;
 LTexture candleTexture;
 //Evil Hand Texture
@@ -361,9 +370,13 @@ class Knive
 {
 public:
 	void render(int x, int y);
+	void render2(int x, int y);
 };
 void Knive:: render(int x, int y){
 	kniTexture.render(tknive.x - x,tknive.y - y);
+}
+void Knive:: render2(int x, int y){
+	kni2Texture.render(tknive2.x - x,tknive2.y - y);
 }
 
 class GuiHealth
@@ -780,7 +793,7 @@ void Player::handleEvent( SDL_Event& e )
 							//button to fire
 							// it will stop firing at 0
 												if(ammon > 0)	{
-							if (state[SDL_SCANCODE_Q] && playerfire  == false && ammon >= 0){
+							if (state[SDL_SCANCODE_E] && playerfire  == false && ammon >= 0){
 																					printf( "Player through knife\n" );
 																					ammon= ammon - 1;
 																					ammonum = to_string(ammon);
@@ -789,12 +802,13 @@ void Player::handleEvent( SDL_Event& e )
 
 																					playerfire = true;
 																					throwknive = true;
+																					starthurt = true;
 
 
 
 																					}
 							}
-												/*if (state[SDL_SCANCODE_E] && playerfire  == false && ammon >= 0){
+												if (state[SDL_SCANCODE_Q] && playerfire1  == false && ammon >= 0 && stopfire == false){
 																																	printf( "Player through knife\n" );
 																																	ammon= ammon - 1;
 																																	ammonum = to_string(ammon);
@@ -804,10 +818,12 @@ void Player::handleEvent( SDL_Event& e )
 																																	playerfire1 = true;
 																																	throwknive1 = true;
 
+																																			starthurt2 = true;
+
 
 
 																																	}
-*/
+
 
 
 												//this is to test the reload
@@ -829,7 +845,8 @@ void Player::move()
     //Move the dot left or right
     mPosX += mVelX;
     playerPos.x = mPosX;
-   // tknive.x = playerPos.x;
+     tknive.x +=  mVelX;
+   tknive2.x +=  mVelX;
 
     //If the dot went too far to the left or right
     if( ( mPosX < 25 ) || ( mPosX + DOT_WIDTH > 2900 ) )
@@ -838,6 +855,7 @@ void Player::move()
         mPosX -= mVelX;
         playerPos.x = mPosX;
     	//tknive.x = playerPos.x;
+    	//tknive2.x = playerPos.x;
 
     }
 
@@ -845,6 +863,7 @@ void Player::move()
     mPosY += mVelY;
     playerPos.y = mPosY;
     tknive.y = playerPos.y;
+    tknive2.y = playerPos.y;
 
     //If the dot went too far up or down
     if( ( mPosY < 25 ) || ( mPosY + DOT_HEIGHT > 2200 ) )
@@ -852,7 +871,8 @@ void Player::move()
         //Move back
         mPosY -= mVelY;
         playerPos.y = mPosY;
-        tknive.y = playerPos.y;
+        //kny= playerPos.y;
+        //kny2 = playerPos.y;
     }
 }
 
@@ -1017,6 +1037,11 @@ bool loadMedia()
 										printf( "Failed to load dot texture!\n" );
 										success = false;
 									}
+								if( !kni2Texture.loadFromFile( "Slayer-of-Dracula/image/tknive2.bmp" ) )
+																	{
+																		printf( "Failed to load dot texture!\n" );
+																		success = false;
+																	}
 
 								if( !orbTexture.loadFromFile( "Slayer-of-Dracula/image/ord.bmp" ) )
 											{
@@ -1159,6 +1184,7 @@ void close()
 	primary2Texture.free();
 	bullTexture.free();
 	kniTexture.free();
+	kniTexture.free();
 	bossTexture.free();
 	candleTexture.free();
 	handTexture.free();
@@ -1201,6 +1227,7 @@ int main(int argc, char* argv[]) {
 //float endY = playerPos.y;
 		bool stophand = false;
 		bool stophand1 = false;
+
 		Uint32 callback( Uint32 interval, void* param );
 		bool hit = false;
 		bool hit2 = false;
@@ -1208,6 +1235,7 @@ int main(int argc, char* argv[]) {
 		bool hit4 = false;
 		bool gamedoor = false;
 		bool enemyhit = false;
+		bool enemyhit2 = false;
 		bool enemydead = false;
 		bool enemydead2 = false;
 		bool enemydead3 = false;
@@ -1232,6 +1260,7 @@ int main(int argc, char* argv[]) {
 			turretHealth2 = rand() % 5 +1;
 			turretHealth3 = rand() % 5 +1;
 			turretHealth4 = rand() % 5 +1;
+			handHealth = rand() % 6 +1;
 			handHealth1 = rand() % 6 +1;
 
 		int startEnemyY = dam.y+10;
@@ -1272,7 +1301,7 @@ int main(int argc, char* argv[]) {
 					GuiHealth health;
 					GuiAmmo ammo;
 					GuiKey key;
-					damage d;
+					//damage d;
 					Ammo amo;
 					heal h;
 					Stand sta;
@@ -1324,8 +1353,11 @@ int main(int argc, char* argv[]) {
 
 					SDL_Rect door = {1025,250,10,200};
 
-					tknive.x = dot.mPosX;
-					tknive.y = dot.mPosY;
+					//tknive.x = playerPos.x;
+					//tknive.y = playerPos.y;
+					//tknive2.x = playerPos.x;
+					//tknive2.y = playerPos.y;
+
 					bullet.x = dam.x;
 					bullet.y = startEnemyY;
 					bullet2.x = dam1.x;
@@ -1457,6 +1489,7 @@ int main(int argc, char* argv[]) {
 																	ammonum = to_string(ammon);
 
 																	aTextTexture.loadFromRenderedText( ammonum, textColor);
+																	stopfire = false;
 																	res.y = -1000;
 																	wonbar.y = -1000;
 																	deadbody.y = -1000;
@@ -1498,7 +1531,7 @@ int main(int argc, char* argv[]) {
 						 // x 2700 y 2200
 						 ehand.x = 1500;
 						 //1700
-						ehand.y = 1700;
+						ehand.y = 2000;
 						rangehand.x = ehand.x-300;
 						rangehand.y = ehand.y-300;
 						ehand1.x = 2500;
@@ -1525,7 +1558,7 @@ int main(int argc, char* argv[]) {
 						restart1 = false;
 						}
 
-
+/*
 						if( SDL_HasIntersection(&playerPos, &bullet) && hit == false){
 
 												printf( "Player got hit\n" );
@@ -1604,6 +1637,19 @@ int main(int argc, char* argv[]) {
 
 
 						}
+						if( SDL_HasIntersection(&dam, &tknive2) && enemyhit2 == false ){
+													printf( "enemy hit\n" );
+													tknive2.x = -1000;
+													//dam.y = -1000;
+													turretHealth -= 1;
+													playerfire1 = false;
+													throwknive1 = false;
+
+												throwknive = false;
+													enemyhit2 = true;
+
+
+												}
 						if(turretHealth <= 0){
 							//printf( "enemy destory\n" );
 							dam.y = -1000;
@@ -1622,6 +1668,19 @@ int main(int argc, char* argv[]) {
 
 
 												}
+						if( SDL_HasIntersection(&dam1, &tknive2) && enemyhit2 == false ){
+																			printf( "enemy hit\n" );
+																			tknive2.x = -1000;
+																			//dam.y = -1000;
+																			turretHealth2 -= 1;
+																			playerfire1 = false;
+																			throwknive1 = false;
+
+																		throwknive = false;
+																			enemyhit2 = true;
+
+
+																		}
 												if(turretHealth2 <= 0){
 													//printf( "enemy destory\n" );
 													dam1.y = -1000;
@@ -1640,6 +1699,19 @@ int main(int argc, char* argv[]) {
 
 
 																		}
+												if( SDL_HasIntersection(&dam2, &tknive2) && enemyhit2 == false ){
+																															printf( "enemy hit\n" );
+																															tknive2.x = -1000;
+																															//dam.y = -1000;
+																															turretHealth3 -= 1;
+																															playerfire1 = false;
+																															throwknive1 = false;
+
+																														throwknive = false;
+																															enemyhit2 = true;
+
+
+																														}
 																		if(turretHealth3 <= 0){
 																			//printf( "enemy destory\n" );
 																			dam2.y = -1000;
@@ -1658,12 +1730,25 @@ int main(int argc, char* argv[]) {
 
 
 																								}
+																		if( SDL_HasIntersection(&dam3, &tknive2) && enemyhit2 == false ){
+																																											printf( "enemy hit\n" );
+																																											tknive2.x = -1000;
+																																											//dam.y = -1000;
+																																											turretHealth4 -= 1;
+																																											playerfire1 = false;
+																																											throwknive1 = false;
+
+																																										throwknive = false;
+																																											enemyhit2 = true;
+
+
+																																										}
 																								if(turretHealth4 <= 0){
 																									//printf( "enemy destory\n" );
 																									dam3.y = -1000;
 																									enemydead4 = true;
-																								}
-						if( SDL_HasIntersection(&boss, &tknive) && enemyhit == false ){
+																								}*/
+						if( SDL_HasIntersection(&boss, &tknive) && enemyhit == false && starthurt == true ){
 													printf( "enemy hit\n" );
 													tknive.x = -1000;
 													//dam.y = -1000;
@@ -1675,6 +1760,18 @@ int main(int argc, char* argv[]) {
 
 
 												}
+						if( SDL_HasIntersection(&boss, &tknive2) && enemyhit2 == false  && starthurt2 == true){
+																			printf( "enemy hit\n" );
+																			tknive2.x = -1000;
+																			//dam.y = -1000;
+																			bossHealth -= 1;
+																			playerfire1 = false;
+																			throwknive1 = false;
+
+																			enemyhit2 = true;
+
+
+																		}
 						//winstate
 												if(bossHealth <= 0){
 													//printf( "enemy destory\n" );
@@ -1685,7 +1782,7 @@ int main(int argc, char* argv[]) {
 													res.y = 450;
 												}
 												//end of winstate
-												if( SDL_HasIntersection(&ehand, &tknive) && enemyhit == false ){
+												if( SDL_HasIntersection(&ehand, &tknive) && enemyhit == false  && starthurt == true){
 																									printf( "enemy hand hit\n" );
 																									tknive.x = -1000;
 																									//dam.y = -1000;
@@ -1697,6 +1794,18 @@ int main(int argc, char* argv[]) {
 
 
 																								}
+												if( SDL_HasIntersection(&ehand, &tknive2) && enemyhit2 == false  && starthurt2 == true){
+																																					printf( "enemy hand hit\n" );
+																																					tknive2.x = -1000;
+																																					//dam.y = -1000;
+																																					handHealth -= 1;
+																																					playerfire1 = false;
+																																					throwknive1 = false;
+
+																																					enemyhit2 = true;
+
+
+																																				}
 																								if(handHealth <= 0){
 
 																									ehand.y = -1000;
@@ -1704,7 +1813,7 @@ int main(int argc, char* argv[]) {
 
 																								}
 
-																								if( SDL_HasIntersection(&ehand1, &tknive) && enemyhit == false ){
+																								if( SDL_HasIntersection(&ehand1, &tknive) && enemyhit == false  && starthurt == true){
 																																																	printf( "enemy hand hit\n" );
 																																																	tknive.x = -1000;
 																																																	//dam.y = -1000;
@@ -1716,6 +1825,18 @@ int main(int argc, char* argv[]) {
 
 
 																																																}
+																								if( SDL_HasIntersection(&ehand1, &tknive2) && enemyhit2 == false  && starthurt2 == true){
+																																																																									printf( "enemy hand hit\n" );
+																																																																									tknive2.x = -1000;
+																																																																									//dam.y = -1000;
+																																																																									handHealth1 -= 1;
+																																																																									playerfire1 = false;
+																																																																									throwknive1 = false;
+
+																																																																									enemyhit2 = true;
+
+
+																																																																								}
 																																																if(handHealth1 <= 0){
 
 																																																	ehand1.y = -1000;
@@ -1798,7 +1919,7 @@ int main(int argc, char* argv[]) {
 																										SDL_Color textColor = { 0, 0, 0 };
 																										gTextTexture.loadFromRenderedText( healthnum, textColor);
 						}
-
+/*
 							//Turret1
 						//checking distance
 						double distancex = ((dam.x + (dam.w / 2))
@@ -1833,7 +1954,7 @@ int main(int argc, char* argv[]) {
 
 														double calcdistancea1 = sqrt(distancexa1 + distanceya1);
 														//cout << calcdistance << endl;
-												if(calcdistancea1 <= 300 && enemydead == false){
+												if(calcdistancea1 <= 300 && enemydead2 == false){
 													testfire2 = true;
 
 											}
@@ -1856,7 +1977,7 @@ int main(int argc, char* argv[]) {
 
 																				double calcdistancea2 = sqrt(distancexa2 + distanceya2);
 
-																		if( calcdistancea2 <= 300 && enemydead == false){
+																		if( calcdistancea2 <= 300 && enemydead3 == false){
 																			testfire3 = true;
 
 																	}
@@ -1879,7 +2000,7 @@ int main(int argc, char* argv[]) {
 
 																																						double calcdistancea3 = sqrt(distancexa3 + distanceya3);
 
-																																				if( calcdistancea3 <= 300 && enemydead == false){
+																																				if( calcdistancea3 <= 300 && enemydead4 == false){
 																																					testfire4 = true;
 
 																																			}
@@ -1890,7 +2011,7 @@ int main(int argc, char* argv[]) {
 																																				if( playerPos.x < dam3.x){
 
 																																											fireright4 = false;
-																																										}
+																																										}*/
 
 						//Evil Hand
 						double distancex1 = ((ehand.x + (ehand.w / 2))
@@ -1907,20 +2028,20 @@ int main(int argc, char* argv[]) {
 							//printf( "Test Evil hand  \n" );
 							stophand = false;
 							if(playerPos.x >= ehand.x && stophand == false){
-								ehand.x += 1;
-								rangehand.x += 1;
+								ehand.x += 3;
+								rangehand.x += 3;
 							}
 							if(playerPos.x <= ehand.x && stophand == false){
-								ehand.x -= 1;
-								rangehand.x -= 1;
+								ehand.x -= 3;
+								rangehand.x -= 3;
 														}
 							if(playerPos.y >= ehand.y ){
-										ehand.y += 1;
-										rangehand.y += 1;
+										ehand.y += 3;
+										rangehand.y += 3;
 													}
 							if(playerPos.y <= ehand.y ){
-															ehand.y -= 1;
-															rangehand.y -= 1;
+															ehand.y -= 3;
+															rangehand.y -= 3;
 																					}
 
 						}
@@ -1953,20 +2074,20 @@ int main(int argc, char* argv[]) {
 													//printf( "Test Evil hand  \n" );
 													stophand1 = false;
 													if(playerPos.x >= ehand1.x && stophand1 == false){
-														ehand1.x += 1;
-														rangehand1.x += 1;
+														ehand1.x += 3;
+														rangehand1.x += 3;
 													}
 													if(playerPos.x <= ehand1.x && stophand1 == false){
-														ehand1.x -= 1;
-														rangehand1.x -= 1;
+														ehand1.x -= 3;
+														rangehand1.x -= 3;
 																				}
 													if(playerPos.y >= ehand1.y ){
-																ehand1.y += 1;
-																rangehand1.y += 1;
+																ehand1.y += 3;
+																rangehand1.y += 3;
 																			}
 													if(playerPos.y <= ehand1.y ){
-																					ehand1.y -= 1;
-																					rangehand1.y -= 1;
+																					ehand1.y -= 3;
+																					rangehand1.y -= 3;
 																											}
 
 												}
@@ -2006,6 +2127,7 @@ int main(int argc, char* argv[]) {
 						if(ammon <= 0){
 							ammon= 0;
 							ammonum = to_string(ammon);
+							stopfire = true;
 							SDL_Color textColor = { 255, 0, 0 };
 							aTextTexture.loadFromRenderedText( ammonum, textColor);
 
@@ -2176,6 +2298,32 @@ int main(int argc, char* argv[]) {
 							printf("bing\n");
 								}
 						}
+						//player throw knife
+											if(throwknive1 == true){
+
+												if(enemyhit2 == true){
+													enemyhit2 = false;
+													tknive2.x = playerPos.x;
+													tknive2.y = playerPos.y;
+												}
+
+
+
+
+
+
+
+												knive.render2(camera.x, camera.y);
+												//tknive.x = playerPos.x;
+												tknive2.x -= 50;
+												if( tknive2.x <= 0){
+												tknive2.x = -1000;
+												playerfire1 = false;
+												throwknive1 = false;
+												enemyhit2 = true;
+												printf("bing2\n");
+													}
+											}
 
 
 						//Render objects
@@ -2186,10 +2334,10 @@ int main(int argc, char* argv[]) {
 
 
 						//Evil Turret
-						d.render( camera.x, camera.y);
+						/*d.render( camera.x, camera.y);
 						d.render2( camera.x, camera.y);
 						d.render3( camera.x, camera.y);
-						d.render4( camera.x, camera.y);
+						d.render4( camera.x, camera.y);*/
 
 
 
@@ -2209,6 +2357,8 @@ int main(int argc, char* argv[]) {
 						//column
 						//b.render2( camera.x, camera.y);
 						sta.render(camera.x, camera.y);
+						//knive.render2(camera.x, camera.y);
+						//knive.render(camera.x, camera.y);
 						sta.render2(camera.x, camera.y);
 						sta.render3(camera.x, camera.y);
 						sta.render4(camera.x, camera.y);
