@@ -121,7 +121,7 @@ bool keyon = true;
 
 
  SDL_Rect orb = {1500,650,50,50};
- SDL_Rect playerPos = {300,2200,50,100};
+ SDL_Rect playerPos = {100,2200,50,100};
  SDL_Rect skull1Pos;
  //throw knive
   SDL_Rect tknive = {playerPos.x,playerPos.y,10,10};
@@ -1301,7 +1301,7 @@ int main(int argc, char* argv[]) {
 					GuiHealth health;
 					GuiAmmo ammo;
 					GuiKey key;
-					//damage d;
+					damage d;
 					Ammo amo;
 					heal h;
 					Stand sta;
@@ -1558,7 +1558,7 @@ int main(int argc, char* argv[]) {
 						restart1 = false;
 						}
 
-/*
+
 						if( SDL_HasIntersection(&playerPos, &bullet) && hit == false){
 
 												printf( "Player got hit\n" );
@@ -1624,7 +1624,7 @@ int main(int argc, char* argv[]) {
 
 																	}
 						//Knife hit Eye Turret
-						if( SDL_HasIntersection(&dam, &tknive) && enemyhit == false ){
+						if( SDL_HasIntersection(&dam, &tknive) && enemyhit == false && starthurt == true){
 							printf( "enemy hit\n" );
 							tknive.x = -1000;
 							//dam.y = -1000;
@@ -1637,7 +1637,7 @@ int main(int argc, char* argv[]) {
 
 
 						}
-						if( SDL_HasIntersection(&dam, &tknive2) && enemyhit2 == false ){
+						if( SDL_HasIntersection(&dam, &tknive2) && enemyhit2 == false && starthurt2 == true){
 													printf( "enemy hit\n" );
 													tknive2.x = -1000;
 													//dam.y = -1000;
@@ -1655,7 +1655,7 @@ int main(int argc, char* argv[]) {
 							dam.y = -1000;
 							enemydead = true;
 						}
-						if( SDL_HasIntersection(&dam1, &tknive) && enemyhit == false ){
+						if( SDL_HasIntersection(&dam1, &tknive) && enemyhit == false && starthurt == true){
 													printf( "enemy hit\n" );
 													tknive.x = -1000;
 													//dam.y = -1000;
@@ -1668,7 +1668,7 @@ int main(int argc, char* argv[]) {
 
 
 												}
-						if( SDL_HasIntersection(&dam1, &tknive2) && enemyhit2 == false ){
+						if( SDL_HasIntersection(&dam1, &tknive2) && enemyhit2 == false && starthurt2 == true){
 																			printf( "enemy hit\n" );
 																			tknive2.x = -1000;
 																			//dam.y = -1000;
@@ -1686,7 +1686,7 @@ int main(int argc, char* argv[]) {
 													dam1.y = -1000;
 													enemydead2 = true;
 												}
-												if( SDL_HasIntersection(&dam2, &tknive) && enemyhit == false ){
+												if( SDL_HasIntersection(&dam2, &tknive) && enemyhit == false && starthurt == true){
 																			printf( "enemy hit\n" );
 																			tknive.x = -1000;
 																			//dam.y = -1000;
@@ -1699,7 +1699,7 @@ int main(int argc, char* argv[]) {
 
 
 																		}
-												if( SDL_HasIntersection(&dam2, &tknive2) && enemyhit2 == false ){
+												if( SDL_HasIntersection(&dam2, &tknive2) && enemyhit2 == false && starthurt2 == true){
 																															printf( "enemy hit\n" );
 																															tknive2.x = -1000;
 																															//dam.y = -1000;
@@ -1717,7 +1717,7 @@ int main(int argc, char* argv[]) {
 																			dam2.y = -1000;
 																			enemydead3 = true;
 																		}
-																		if( SDL_HasIntersection(&dam3, &tknive) && enemyhit == false ){
+																		if( SDL_HasIntersection(&dam3, &tknive) && enemyhit == false && starthurt == true){
 																									printf( "enemy hit\n" );
 																									tknive.x = -1000;
 																									//dam.y = -1000;
@@ -1730,7 +1730,7 @@ int main(int argc, char* argv[]) {
 
 
 																								}
-																		if( SDL_HasIntersection(&dam3, &tknive2) && enemyhit2 == false ){
+																		if( SDL_HasIntersection(&dam3, &tknive2) && enemyhit2 == false && starthurt2 == true){
 																																											printf( "enemy hit\n" );
 																																											tknive2.x = -1000;
 																																											//dam.y = -1000;
@@ -1747,7 +1747,7 @@ int main(int argc, char* argv[]) {
 																									//printf( "enemy destory\n" );
 																									dam3.y = -1000;
 																									enemydead4 = true;
-																								}*/
+																								}
 						if( SDL_HasIntersection(&boss, &tknive) && enemyhit == false && starthurt == true ){
 													printf( "enemy hit\n" );
 													tknive.x = -1000;
@@ -1919,7 +1919,7 @@ int main(int argc, char* argv[]) {
 																										SDL_Color textColor = { 0, 0, 0 };
 																										gTextTexture.loadFromRenderedText( healthnum, textColor);
 						}
-/*
+
 							//Turret1
 						//checking distance
 						double distancex = ((dam.x + (dam.w / 2))
@@ -2011,7 +2011,7 @@ int main(int argc, char* argv[]) {
 																																				if( playerPos.x < dam3.x){
 
 																																											fireright4 = false;
-																																										}*/
+																																										}
 
 						//Evil Hand
 						double distancex1 = ((ehand.x + (ehand.w / 2))
@@ -2334,10 +2334,10 @@ int main(int argc, char* argv[]) {
 
 
 						//Evil Turret
-						/*d.render( camera.x, camera.y);
+						d.render( camera.x, camera.y);
 						d.render2( camera.x, camera.y);
 						d.render3( camera.x, camera.y);
-						d.render4( camera.x, camera.y);*/
+						d.render4( camera.x, camera.y);
 
 
 
