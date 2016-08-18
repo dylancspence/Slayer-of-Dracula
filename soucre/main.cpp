@@ -36,7 +36,7 @@ using namespace std;
 //The dimensions of the level
 const int LEVEL_WIDTH = 3072;
 const int LEVEL_HEIGHT = 2355;
-
+bool quitgame = false;
 //Screen dimension constants
 const int SCREEN_WIDTH = 1024;
 const int SCREEN_HEIGHT = 785;
@@ -93,7 +93,7 @@ bool keyon = true;
  // x 2700 y 2200
  //Evil Hand
  //1700
- SDL_Rect ehand = {1500,2000,100,200};
+ SDL_Rect ehand = {1500,1500,100,200};
  SDL_Rect rangehand = {ehand.x-300 ,ehand.y-300 , 600,600};
  SDL_Rect ehand1 = {2500,400,100,200};
   SDL_Rect rangehand1 = {ehand1.x-300 ,ehand1.y-300 , 600,600};
@@ -739,6 +739,13 @@ void Player::handleEvent( SDL_Event& e )
 
 
 																						}
+	if (state[SDL_SCANCODE_ESCAPE]){
+																printf( "quit game\n" );
+
+		quitgame = true;
+
+
+																							}
 	if(dontmove == false){
     //If a key was pressed
 	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
@@ -1240,7 +1247,7 @@ int main(int argc, char* argv[]) {
 		bool enemydead2 = false;
 		bool enemydead3 = false;
 		bool enemydead4 = false;
-		bool bossdead = false;
+	bool bossdead = false;
 		bool stop = false;
 		bool stopt = false;
 		bool stopt2 = false;
@@ -1253,15 +1260,15 @@ int main(int argc, char* argv[]) {
 		int turretHealth3 = 1;
 		int turretHealth4 = 1;
 		int bossHealth = 1;
-		int handHealth = 1;
-		int handHealth1 = 1;
+		//int handHealth = 1;
+		//int handHealth1 = 1;
 		 bossHealth = rand() % 20 +7;
 			turretHealth = rand() % 5 +1;
 			turretHealth2 = rand() % 5 +1;
 			turretHealth3 = rand() % 5 +1;
 			turretHealth4 = rand() % 5 +1;
-			handHealth = rand() % 6 +1;
-			handHealth1 = rand() % 6 +1;
+			int handHealth = rand() % 6 +1;
+			int handHealth1 = rand() % 6 +1;
 
 		int startEnemyY = dam.y+10;
 		int startEnemyY1 = dam1.y+10;
@@ -1382,6 +1389,12 @@ int main(int argc, char* argv[]) {
 							{
 								quit = true;
 							}
+							//User requests quit
+														if( quitgame == true )
+														{
+															quit = true;
+														}
+
 
 							//Handle input for the dot
 							dot.handleEvent( e );
@@ -1531,7 +1544,7 @@ int main(int argc, char* argv[]) {
 						 // x 2700 y 2200
 						 ehand.x = 1500;
 						 //1700
-						ehand.y = 2000;
+						ehand.y = 1500;
 						rangehand.x = ehand.x-300;
 						rangehand.y = ehand.y-300;
 						ehand1.x = 2500;
